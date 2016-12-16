@@ -23,16 +23,19 @@
  */
 package com.anchorage.docks.node.ui;
 
+import java.util.Objects;
+
 import com.anchorage.docks.containers.interfaces.DockUI;
 import com.anchorage.docks.node.DockNode;
 import com.anchorage.system.AnchorageSystem;
-import java.util.Objects;
+
 import javafx.beans.property.StringProperty;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.CacheHint;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tab;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
@@ -44,17 +47,14 @@ import javafx.scene.layout.StackPane;
  *
  * @author Alessio
  */
-public final class DockUIPanel extends Pane implements DockUI {
+public final class TabDockUIPanel extends Pane implements DockUI {
 
     public static final double BAR_HEIGHT = 25;
 
     private Node nodeContent;
     private Label titleLabel;
 
-    private Pane barPanel;
     private StackPane contentPanel;
-
-    private DockCommandsBox commandsBox;
 
     private DockNode node;
 
@@ -64,11 +64,11 @@ public final class DockUIPanel extends Pane implements DockUI {
     
     private ImageView iconView;
 
-    private DockUIPanel() {
+    private TabDockUIPanel() {
 
     }
 
-    public DockUIPanel(String title, Node nodeContent, boolean subStationStype, Image imageIcon) {
+    public TabDockUIPanel(String title, Node nodeContent, boolean subStationStype, Image imageIcon) {
 
         getStylesheets().add("anchorfx.css");
         
@@ -89,21 +89,18 @@ public final class DockUIPanel extends Pane implements DockUI {
     {
         Objects.requireNonNull(icon);
         iconView.setImage(icon);
+        titleLabel.setGraphic(iconView);
     }
-
-    private void makeCommands() {
-        commandsBox = new DockCommandsBox(node);
-        barPanel.getChildren().add(commandsBox);
-
-        commandsBox.layoutXProperty().bind(barPanel.prefWidthProperty().subtract(commandsBox.getChildren().size() * 30 + 10));
-        commandsBox.setLayoutY(0);
-
-        titleLabel.prefWidthProperty().bind(commandsBox.layoutXProperty().subtract(10));
+    
+    private Tab tab;
+    @Override
+    public Tab getOwnTab() {
+    	return tab;
     }
 
     public void setDockNode(DockNode node) {
         this.node = node;
-        makeCommands();
+//        makeCommands();
     }
 
     public StringProperty titleProperty() {
@@ -112,18 +109,18 @@ public final class DockUIPanel extends Pane implements DockUI {
 
     private void installDragEventMananger() {
         
-        barPanel.setOnMouseClicked(event -> {
+    	titleLabel.setOnMouseClicked(event -> {
             if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
                  node.maximizeOrRestore();
             }
         });
 
-        barPanel.setOnMouseDragged(event -> {
+    	titleLabel.setOnMouseDragged(event -> {
             if (event.getButton() == MouseButton.PRIMARY) {
                 manageDragEvent(event);
             }
         });
-        barPanel.setOnMouseReleased(event -> {
+    	titleLabel.setOnMouseReleased(event -> {
             if (event.getButton() == MouseButton.PRIMARY) {
                 manageReleaseEvent();
             }
@@ -134,10 +131,8 @@ public final class DockUIPanel extends Pane implements DockUI {
         if (!node.draggingProperty().get()) {
 
             if (!node.maximizingProperty().get()) {
-                Bounds bounds = node.localToScreen(barPanel.getBoundsInLocal());
-
-                deltaDragging = new Point2D(event.getScreenX() - bounds.getMinX(),
-                                            event.getScreenY() - bounds.getMinY());
+                Bounds bounds = node.localToScreen(contentPanel.getBoundsInLocal());
+                deltaDragging = new Point2D(15, event.getScreenY() - bounds.getMinY() + 20);
 
                 node.enableDraggingOnPosition(event.getScreenX() - deltaDragging.getX(), event.getScreenY() - deltaDragging.getY());
             }
@@ -168,36 +163,21 @@ public final class DockUIPanel extends Pane implements DockUI {
         Objects.requireNonNull(iconImage);
         Objects.requireNonNull(title);
         
-        barPanel = new Pane();
-
-        String titleBarStyle = (!subStationStype) ? "docknode-title-bar" : "substation-title-bar";
-
-        barPanel.getStyleClass().add(titleBarStyle);
-
-        barPanel.setPrefHeight(BAR_HEIGHT);
-        barPanel.relocate(0, 0);
-        barPanel.prefWidthProperty().bind(widthProperty());
-
         titleLabel = new Label(title);
-
-        String titleTextStyle = (!subStationStype) ? "docknode-title-text" : "substation-title-text";
-        
+        String titleTextStyle = (!subStationStype) ? "tab-docknode-title-text" : "tab-substation-title-text";
+        titleLabel.getStyleClass().add(titleTextStyle);
         iconView = new ImageView(iconImage);
         iconView.setFitWidth(15);
         iconView.setFitHeight(15);
         iconView.setPreserveRatio(false);
         iconView.setSmooth(true);
-        iconView.relocate(1,(BAR_HEIGHT-iconView.getFitHeight()) / 2);
-         
-        titleLabel.getStyleClass().add(titleTextStyle);
-        barPanel.getChildren().addAll(iconView,titleLabel);
-        titleLabel.relocate(25, 5);
-
+//        iconView.relocate(1,(BAR_HEIGHT-iconView.getFitHeight()) / 2);
+        titleLabel.setGraphic(iconView);
+        
         contentPanel = new StackPane();
         contentPanel.getStyleClass().add("docknode-content-panel");
-        contentPanel.relocate(0, BAR_HEIGHT);
         contentPanel.prefWidthProperty().bind(widthProperty());
-        contentPanel.prefHeightProperty().bind(heightProperty().subtract(BAR_HEIGHT));
+        contentPanel.prefHeightProperty().bind(heightProperty());
         contentPanel.getChildren().add(nodeContent);
         
         contentPanel.setCache(true);
@@ -212,7 +192,10 @@ public final class DockUIPanel extends Pane implements DockUI {
             nodeContentPane.setMaxHeight(USE_COMPUTED_SIZE);
         }
 
-        getChildren().addAll(barPanel, contentPanel);
+        getChildren().addAll(contentPanel);
+        
+        tab = new Tab();
+        tab.setGraphic(titleLabel);
     }
 
     public StackPane getContentContainer()
@@ -229,7 +212,7 @@ public final class DockUIPanel extends Pane implements DockUI {
     }
  
     public boolean isMenuButtonEnable(){
-        return commandsBox.isMenuButtonEnable();
+        return false;
     }
  
 }

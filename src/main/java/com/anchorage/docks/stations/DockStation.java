@@ -146,6 +146,7 @@ public final class DockStation extends SingleDockContainer {
 
             currentNodeTarget = node;
             dockZones.moveAt(node);
+            selected = dockZones.searchArea(x, y);
 
         }).orElse((Runnable) () -> {
 
@@ -156,7 +157,6 @@ public final class DockStation extends SingleDockContainer {
 
         }).run();
 
-        selected = dockZones.searchArea(x, y);
     }
 
     public void addOverlay(Node node) {

@@ -38,8 +38,16 @@ public class SingleDockContainer extends StackPane implements DockContainer {
     public void putDock(DockNode node, DockNode.DockPosition position, double percentage) {
  
         if (getChildren().isEmpty()) {
-            getChildren().add(node);
-            node.setParentContainer(this);
+        	if(node.isComeWithATab()){
+        		DockTabberContainer tabber = new DockTabberContainer();
+                tabber.setParentContainer(this);
+                tabber.getStyleClass().add("docknode-tab-pane");
+                tabber.putDock(node, position, percentage);
+                this.getChildren().add(tabber);
+        	}else{
+        		getChildren().add(node);
+        		node.setParentContainer(this);
+        	}
         } else {
             manageSubContainers(node, position, percentage);
         }

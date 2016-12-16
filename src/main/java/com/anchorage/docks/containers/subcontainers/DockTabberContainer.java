@@ -23,7 +23,7 @@ import com.anchorage.docks.containers.common.DockCommons;
 import com.anchorage.docks.containers.interfaces.DockContainableComponent;
 import com.anchorage.docks.containers.interfaces.DockContainer;
 import com.anchorage.docks.node.DockNode;
-import com.anchorage.docks.stations.DockStation;
+
 import javafx.scene.Node;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -34,145 +34,165 @@ import javafx.scene.control.TabPane;
  */
 public final class DockTabberContainer extends TabPane implements DockContainer {
 
-    private DockContainer container;
-    
-    @Override
-    public void putDock(DockNode node, DockNode.DockPosition position, double percentage) {
-        Tab newTab = new Tab(node.getContent().titleProperty().get());
-        newTab.closableProperty().bind(node.closeableProperty());
-        getTabs().add(newTab);
-        newTab.setContent(node);
-        node.setParentContainer(this);
-        node.ensureVisibility();
-    }
- 
-    private void createSplitter(DockNode node, DockNode.DockPosition position) {
-        DockContainer currentContainer = container;
+	private DockContainer container;
 
-        DockSplitterContainer splitter = DockCommons.createSplitter(this, node, position, 0.5);
+	@Override
+	public void putDock(DockNode node, DockNode.DockPosition position, double percentage) {
+		Tab tab = node.getContent().getOwnTab() != null ? node.getContent().getOwnTab()
+				: new Tab(node.getContent().titleProperty().get());
+		tab.closableProperty().bind(node.closeableProperty());
+		getTabs().add(tab);
+		tab.setContent(node);
+		node.setParentContainer(this);
+		node.ensureVisibility();
+	}
 
-        int indexOf = currentContainer.indexOf(this);
+	private void createSplitter(DockNode node, DockNode.DockPosition position) {
+		DockContainer currentContainer = container;
 
-        currentContainer.insertNode(splitter, indexOf);
+		DockSplitterContainer splitter = DockCommons.createSplitter(this, node, position, 0.5);
 
-        currentContainer.removeNode(this);
+		int indexOf = currentContainer.indexOf(this);
 
-        container = splitter;
-    }
+		currentContainer.insertNode(splitter, indexOf);
 
-    private Tab getTabByNode(DockNode node) {
-        return getTabs().stream().filter(t -> t.getContent() == node).findFirst().get();
-    }
+		currentContainer.removeNode(this);
 
-    @Override
-    public boolean isDockVisible(DockNode node) {
-        Tab nodeTab = getTabByNode(node);
-        return getSelectionModel().getSelectedItem() == nodeTab;
-    }
+		container = splitter;
+	}
 
-    @Override
-    public void putDock(DockNode node, DockNode nodeTarget, DockNode.DockPosition position, double percentage) {
-        if (position != DockNode.DockPosition.CENTER) {
-            createSplitter(node, position);
-        } else {
+	private Tab getTabByNode(DockNode node) {
+		return getTabs().stream().filter(t -> t.getContent() == node).findFirst().get();
+	}
 
-            DockContainableComponent containableComponent = (DockContainableComponent) node;
-            if (containableComponent.getParentContainer() != this) {
-                Tab newTab = new Tab(node.getContent().titleProperty().get());
-                newTab.closableProperty().bind(node.closeableProperty());
-                getTabs().add(newTab);
-                newTab.setContent(node);
-                node.setParentContainer(this);
-                node.ensureVisibility();
-            }
-        }
-    }
+	@Override
+	public boolean isDockVisible(DockNode node) {
+		Tab nodeTab = getTabByNode(node);
+		return getSelectionModel().getSelectedItem() == nodeTab;
+	}
 
-    @Override
-    public int indexOf(Node node) {
-        int index = 0;
-        boolean found = false;
-        for (Tab tab : getTabs()) {
-            if (tab.getContent() == node) {
-                found = true;
-                break;
-            }
-            index++;
-        }
+	@Override
+	public void putDock(DockNode node, DockNode nodeTarget, DockNode.DockPosition position, double percentage) {
+		if (position != DockNode.DockPosition.CENTER) {
+			createSplitter(node, position);
+		} else {
 
-        return (found) ? index : -1;
-    }
+			DockContainableComponent containableComponent = (DockContainableComponent) node;
+			if (containableComponent.getParentContainer() != this) {
+				Tab tab = node.getContent().getOwnTab() != null ? node.getContent().getOwnTab()
+						: new Tab(node.getContent().titleProperty().get());
+				tab.closableProperty().bind(node.closeableProperty());
+				getTabs().add(tab);
+				tab.setContent(node);
+				node.setParentContainer(this);
+				node.ensureVisibility();
+			}
+		}
+	}
 
-    @Override
-    public void undock(DockNode node) {
-        int index = indexOf(node);
+	@Override
+	public int indexOf(Node node) {
+		int index = 0;
+		boolean found = false;
+		for (Tab tab : getTabs()) {
+			if (tab.getContent() == node) {
+				found = true;
+				break;
+			}
+			index++;
+		}
 
-        Tab tab = getTabs().get(index);
-        getTabs().remove(tab);
+		return (found) ? index : -1;
+	}
 
-        ((DockContainableComponent) node).setParentContainer(null);
+	@Override
+	public void undock(DockNode node) {
+		int index = indexOf(node);
 
-        if (getTabs().size() == 1) {
-            DockNode remainingNode = (DockNode) getTabs().get(0).getContent();
-            getTabs().remove(0);
-            int indexInsideParent = getParentContainer().indexOf(this);
+		Tab tab = getTabs().get(index);
+		getTabs().remove(tab);
 
-            getParentContainer().insertNode(remainingNode, indexInsideParent);
-            getParentContainer().removeNode(this);
+		((DockContainableComponent) node).setParentContainer(null);
 
-        }
-    }
+		if (getTabs().size() == 1) {
+			DockNode remainingNode = (DockNode) getTabs().get(0).getContent();
+			if (!remainingNode.isComeWithATab()) {
+				getTabs().remove(0);
+				int indexInsideParent = getParentContainer().indexOf(this);
 
-    @Override
-    public void insertNode(Node node, int index) {
-        // NOTHING
-    }
+				getParentContainer().insertNode(remainingNode, indexInsideParent);
+				getParentContainer().removeNode(this);
+			}
+		}
 
-    @Override
-    public void removeNode(Node node) {
-        // NOTHING
-    }
+		if (getTabs().size() == 0) {
+			if (getParentContainer() instanceof DockSplitterContainer) {
+				DockSplitterContainer parentSplitContainer = (DockSplitterContainer) getParentContainer();
+				Node remainingNode = (parentSplitContainer.getItems().get(0) == this)
+						? parentSplitContainer.getItems().get(1) : parentSplitContainer.getItems().get(0);
+				int indexInsideParent = parentSplitContainer.getParentContainer().indexOf(parentSplitContainer);
+				parentSplitContainer.getParentContainer().insertNode(remainingNode, indexInsideParent);
+				getParentContainer().removeNode(this);
+				((DockContainableComponent) this).setParentContainer(null);
+			}
+		}
+	}
 
-    @Override
-    public void setParentContainer(DockContainer container) {
-        this.container = container;
-    }
+	@Override
+	public void insertNode(Node node, int index) {
+		// NOTHING
+	}
 
-    @Override
-    public DockContainer getParentContainer() {
-        return container;
-    }
+	@Override
+	public void removeNode(Node node) {
+		// NOTHING
+	}
 
-    public void manageDragOnSameNode(DockNode node, DockNode.DockPosition position) {
+	@Override
+	public void setParentContainer(DockContainer container) {
+		this.container = container;
+	}
 
-        if (getTabByNode(node) != null && getTabs().size() == 2) {
-            DockNode otherNode = (getTabs().get(0).getContent() == node) ? (DockNode) getTabs().get(1).getContent() : (DockNode) getTabs().get(0).getContent();
-            node.undock();
-            node.dock(otherNode, position);
-        } else if (getTabByNode(node) != null && getTabs().size() > 2) {
+	@Override
+	public DockContainer getParentContainer() {
+		return container;
+	}
 
-            node.undock();
+	public void manageDragOnSameNode(DockNode node, DockNode.DockPosition position) {
 
-            DockContainer currentContainer = container;
+		if (getTabByNode(node) != null && getTabs().size() == 2) {
+			DockNode otherNode = (getTabs().get(0).getContent() == node) ? (DockNode) getTabs().get(1).getContent()
+					: (DockNode) getTabs().get(0).getContent();
+			node.undock();
+			node.dock(otherNode, position);
+		} else if (getTabByNode(node) != null && getTabs().size() > 2) {
 
-            DockSplitterContainer splitter = DockCommons.createSplitter(this, node, position, 0.5);
+			node.undock();
 
-            int indexOf = currentContainer.indexOf(this);
+			DockContainer currentContainer = container;
 
-            currentContainer.insertNode(splitter, indexOf);
+			DockSplitterContainer splitter = DockCommons.createSplitter(this, node, position, 0.5);
 
-            currentContainer.removeNode(this);
+			int indexOf = currentContainer.indexOf(this);
 
-            container = splitter;
+			currentContainer.insertNode(splitter, indexOf);
 
-            node.stationProperty().get().add(node);
-        }
-    }
+			currentContainer.removeNode(this);
 
-    public void ensureVisibility(DockNode node) {
+			container = splitter;
 
-        Tab tabNode = getTabByNode(node);
-        getSelectionModel().select(tabNode);
-    }
+			Node remainNode = getTabs().get(0).getContent();
+			if (((DockNode) remainNode).isComeWithATab()) {
+				node.stationProperty().set(((DockNode) remainNode).stationProperty().get());
+				node.stationProperty().get().add(node);
+			}
+		}
+	}
+
+	public void ensureVisibility(DockNode node) {
+
+		Tab tabNode = getTabByNode(node);
+		getSelectionModel().select(tabNode);
+	}
 
 }

@@ -19,14 +19,18 @@
 
 package com.anchorage.docks.containers.zones;
 
-import com.anchorage.docks.containers.common.AnchorageSettings;
 import static com.anchorage.docks.containers.common.AnchorageSettings.FLOATING_NODE_DROPSHADOW_RADIUS;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.anchorage.docks.containers.common.AnchorageSettings;
+import com.anchorage.docks.containers.subcontainers.DockTabberContainer;
 import com.anchorage.docks.node.DockNode;
 import com.anchorage.docks.node.ui.DockUIPanel;
 import com.anchorage.docks.stations.DockStation;
 import com.anchorage.docks.stations.DockSubStation;
-import java.util.ArrayList;
-import java.util.List;
+
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -233,11 +237,15 @@ public final class DockZones extends Stage {
                 forEach(z -> z.setZoneDisabled(false));
 
         if (currentNodeTarget == nodeToMove) {
-            // disable border zones
-            selectors.
-                    stream().
-                    filter(z -> !z.isStationZone() && z.getPosition() != DockNode.DockPosition.CENTER).
-                    forEach(z -> z.setZoneDisabled(true));
+        	if(currentNodeTarget.getParentContainer() instanceof DockTabberContainer){
+        		if(((DockTabberContainer)currentNodeTarget.getParentContainer()).getTabs().size() <= 1){
+		            // disable border zones
+		            selectors.
+		                    stream().
+		                    filter(z -> !z.isStationZone() && z.getPosition() != DockNode.DockPosition.CENTER).
+		                    forEach(z -> z.setZoneDisabled(true));
+        		}
+        	}
         }
     }
 

@@ -23,16 +23,18 @@
  */
 package com.anchorage.system;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.anchorage.docks.node.DockNode;
 import com.anchorage.docks.node.ui.DockUIPanel;
+import com.anchorage.docks.node.ui.TabDockUIPanel;
 import com.anchorage.docks.stations.DockStation;
 import com.anchorage.docks.stations.DockSubStation;
 import com.sun.javafx.css.StyleManager;
-import javafx.scene.Parent;
 
-import java.util.ArrayList;
-import java.util.List;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.image.Image;
 
 /**
@@ -82,6 +84,13 @@ public class AnchorageSystem {
         DockNode container = new DockNode(panel);
         return container;
     }
+
+	public static DockNode createTabDock(String title, Node content) {
+		TabDockUIPanel panel = new TabDockUIPanel(title, content, false, emptyIconImage);
+        DockNode container = new DockNode(panel);
+        container.floatableProperty().set(false);
+        return container;
+	}
 
     public static void installDefaultStyle() {
         StyleManager.getInstance()

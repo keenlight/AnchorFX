@@ -23,20 +23,23 @@
  */
 package com.anchorage.docks.node;
 
-import com.anchorage.docks.containers.StageFloatable;
 import static com.anchorage.docks.containers.common.AnchorageSettings.FLOATING_NODE_DROPSHADOW_RADIUS;
-import com.anchorage.docks.node.ui.DockUIPanel;
-import javafx.scene.layout.StackPane;
 
+import java.util.Objects;
+
+import com.anchorage.docks.containers.StageFloatable;
 import com.anchorage.docks.containers.interfaces.DockContainableComponent;
 import com.anchorage.docks.containers.interfaces.DockContainer;
+import com.anchorage.docks.containers.interfaces.DockUI;
 import com.anchorage.docks.containers.subcontainers.DockTabberContainer;
 import com.anchorage.docks.node.interfaces.DockNodeCloseRequestHandler;
 import com.anchorage.docks.node.interfaces.DockNodeCreationListener;
+import com.anchorage.docks.node.ui.DockUIPanel;
+import com.anchorage.docks.node.ui.TabDockUIPanel;
 import com.anchorage.docks.stations.DockStation;
 import com.anchorage.docks.stations.DockSubStation;
 import com.anchorage.system.AnchorageSystem;
-import java.util.Objects;
+
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -49,8 +52,9 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.Node;
 import javafx.scene.image.Image;
-import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Screen;
 import javafx.stage.Window;
 
@@ -69,7 +73,9 @@ public class DockNode extends StackPane implements DockContainableComponent {
         CENTER
     }
 
-    private DockUIPanel content;
+//    private DockUIPanel content;
+    
+    private DockUI content;
 
     private BooleanProperty floatableProperty;
     private BooleanProperty closeableProperty;
@@ -112,6 +118,17 @@ public class DockNode extends StackPane implements DockContainableComponent {
     }
 
     public DockNode(DockUIPanel node) {
+
+        this();
+
+        this.content = node;
+
+        buildUI(node);
+
+        callCreationCallBack();
+    }
+    
+    public DockNode(TabDockUIPanel node) {
 
         this();
 
@@ -208,8 +225,8 @@ public class DockNode extends StackPane implements DockContainableComponent {
         return stageFloatable;
     }
 
-    private void buildUI(DockUIPanel panel) {
-        getChildren().add(panel);
+    private void buildUI(DockUI panel) {
+        getChildren().add((Node)panel);
         panel.setDockNode(this);
     }
 
@@ -396,7 +413,7 @@ public class DockNode extends StackPane implements DockContainableComponent {
         }
     }
 
-    public DockUIPanel getContent() {
+    public DockUI getContent() {
         return content;
     }
 
@@ -484,5 +501,7 @@ public class DockNode extends StackPane implements DockContainableComponent {
         return content.isMenuButtonEnable();
     }
  
- 
+    public boolean isComeWithATab(){
+    	return getContent() instanceof TabDockUIPanel;
+    }
 }
