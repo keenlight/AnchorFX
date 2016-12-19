@@ -108,7 +108,14 @@ public final class TabDockUIPanel extends Pane implements DockUI {
     }
 
     private void installDragEventMananger() {
-        
+    	tab.setOnCloseRequest(event -> {
+    		
+			if (node.getCloseRequestHandler() == null || node.getCloseRequestHandler().canClose()) {
+				node.undock();
+				event.consume();
+			}
+
+		});
     	titleLabel.setOnMouseClicked(event -> {
             if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
                  node.maximizeOrRestore();
@@ -175,7 +182,7 @@ public final class TabDockUIPanel extends Pane implements DockUI {
         titleLabel.setGraphic(iconView);
         
         contentPanel = new StackPane();
-        contentPanel.getStyleClass().add("docknode-content-panel");
+        contentPanel.getStyleClass().add("tab-docknode-content-panel");
         contentPanel.prefWidthProperty().bind(widthProperty());
         contentPanel.prefHeightProperty().bind(heightProperty());
         contentPanel.getChildren().add(nodeContent);

@@ -88,14 +88,16 @@ public class DockCommons {
 		DockTabberContainer tabber = new DockTabberContainer();
 		Tab newTabPanel = ((TabDockUIPanel) newDockNode.getContent()).getOwnTab();
 
-		newTabPanel.setOnCloseRequest(event -> {
-
-			if (newDockNode.getCloseRequestHandler() == null || newDockNode.getCloseRequestHandler().canClose()) {
-				newDockNode.undock();
-				event.consume();
-			}
-
-		});
+		if(newTabPanel.getOnCloseRequest() == null){
+			newTabPanel.setOnCloseRequest(event -> {
+	
+				if (newDockNode.getCloseRequestHandler() == null || newDockNode.getCloseRequestHandler().canClose()) {
+					newDockNode.undock();
+					event.consume();
+				}
+	
+			});
+		}
 
 		newTabPanel.closableProperty().bind(newDockNode.closeableProperty());
 
@@ -124,24 +126,28 @@ public class DockCommons {
 			Tab existTabPanel = existDockNode.isComeWithATab() ? existDockNode.getContent().getOwnTab() : new Tab(existDockNode.getContent().titleProperty().get());
 			Tab newTabPanel = newDockNode.isComeWithATab() ? newDockNode.getContent().getOwnTab() : new Tab(newDockNode.getContent().titleProperty().get());
 
-			existTabPanel.setOnCloseRequest(event -> {
+			if(existTabPanel.getOnCloseRequest() == null){
+				existTabPanel.setOnCloseRequest(event -> {
+	
+					if (existDockNode.getCloseRequestHandler() == null
+							|| existDockNode.getCloseRequestHandler().canClose()) {
+						existDockNode.undock();
+						event.consume();
+					}
+	
+				});
+			}
 
-				if (existDockNode.getCloseRequestHandler() == null
-						|| existDockNode.getCloseRequestHandler().canClose()) {
-					existDockNode.undock();
-					event.consume();
-				}
-
-			});
-
-			newTabPanel.setOnCloseRequest(event -> {
-
-				if (newDockNode.getCloseRequestHandler() == null || newDockNode.getCloseRequestHandler().canClose()) {
-					newDockNode.undock();
-					event.consume();
-				}
-
-			});
+			if(newTabPanel.getOnCloseRequest() == null){
+				newTabPanel.setOnCloseRequest(event -> {
+	
+					if (newDockNode.getCloseRequestHandler() == null || newDockNode.getCloseRequestHandler().canClose()) {
+						newDockNode.undock();
+						event.consume();
+					}
+	
+				});
+			}
 
 			existTabPanel.closableProperty().bind(existDockNode.closeableProperty());
 			newTabPanel.closableProperty().bind(newDockNode.closeableProperty());
