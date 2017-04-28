@@ -29,7 +29,11 @@ import com.anchorage.docks.containers.interfaces.DockUI;
 import com.anchorage.docks.node.DockNode;
 import com.anchorage.system.AnchorageSystem;
 
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ObjectPropertyBase;
 import javafx.beans.property.StringProperty;
+import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.CacheHint;
@@ -107,20 +111,52 @@ public final class TabDockUIPanel extends Pane implements DockUI {
         return titleLabel.textProperty();
     }
 
+    private ObjectProperty<EventHandler<Event>> onCloseRequest;
+    public final ObjectProperty<EventHandler<Event>> onCloseRequestProperty() {
+        if (onCloseRequest == null) {
+            onCloseRequest = new ObjectPropertyBase<EventHandler<Event>>() {
+                @Override protected void invalidated() {
+                    setEventHandler(Tab.TAB_CLOSE_REQUEST_EVENT, get());
+                }
+
+                @Override public Object getBean() {
+                    return TabDockUIPanel.this;
+                }
+
+                @Override public String getName() {
+                    return "onCloseRequest";
+                }
+            };
+        }
+        return onCloseRequest;
+    }
+
+    public EventHandler<Event> getOnCloseRequest() {
+        if( onCloseRequest == null ) {
+            return null;
+        }
+        return onCloseRequest.get();
+    }
+
+    public void setOnCloseRequest(EventHandler<Event> value) {
+        onCloseRequestProperty().set(value);
+    }
+    
     private void installDragEventMananger() {
     	tab.setOnCloseRequest(event -> {
     		
 			if (node.getCloseRequestHandler() == null || node.getCloseRequestHandler().canClose()) {
 				node.undock();
+		        Event.fireEvent(this, new Event(this, this, Tab.TAB_CLOSE_REQUEST_EVENT));
 				event.consume();
 			}
 
 		});
-    	titleLabel.setOnMouseClicked(event -> {
-            if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
-                 node.maximizeOrRestore();
-            }
-        });
+//    	titleLabel.setOnMouseClicked(event -> {
+//            if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
+//                 node.maximizeOrRestore();
+//            }
+//        });
 
     	titleLabel.setOnMouseDragged(event -> {
             if (event.getButton() == MouseButton.PRIMARY) {

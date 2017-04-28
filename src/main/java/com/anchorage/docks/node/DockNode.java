@@ -49,6 +49,8 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
+import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
@@ -70,7 +72,8 @@ public class DockNode extends StackPane implements DockContainableComponent {
         RIGHT,
         TOP,
         BOTTOM,
-        CENTER
+        CENTER,
+        AUTO
     }
 
 //    private DockUIPanel content;
@@ -139,6 +142,19 @@ public class DockNode extends StackPane implements DockContainableComponent {
         callCreationCallBack();
     }
 
+    public ObjectProperty<EventHandler<Event>> onCloseRequestProperty(){
+    	return content.onCloseRequestProperty();
+    }
+	
+    public EventHandler<Event> getOnCloseRequest(){
+		return content.getOnCloseRequest();
+	}
+	
+    public void setOnCloseRequest(EventHandler<Event> value){
+    	content.setOnCloseRequest(value);
+    }
+    
+    
     private void callCreationCallBack() {
         if (content.getNodeContent() instanceof DockNodeCreationListener) {
             ((DockNodeCreationListener) content.getNodeContent()).onDockNodeCreated(this);

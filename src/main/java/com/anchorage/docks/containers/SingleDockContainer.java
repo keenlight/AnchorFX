@@ -25,6 +25,7 @@ import com.anchorage.docks.containers.interfaces.DockContainer;
 import com.anchorage.docks.containers.subcontainers.DockSplitterContainer;
 import com.anchorage.docks.containers.subcontainers.DockTabberContainer;
 import com.anchorage.docks.node.DockNode;
+import com.anchorage.docks.node.DockNode.DockPosition;
 import com.anchorage.docks.stations.DockStation;
 import javafx.scene.Node;
 import javafx.scene.layout.StackPane;
@@ -42,7 +43,7 @@ public class SingleDockContainer extends StackPane implements DockContainer {
         		DockTabberContainer tabber = new DockTabberContainer();
                 tabber.setParentContainer(this);
                 tabber.getStyleClass().add("docknode-tab-pane");
-                tabber.putDock(node, position, percentage);
+                tabber.putDock(node, DockPosition.CENTER, percentage);
                 this.getChildren().add(tabber);
         	}else{
         		getChildren().add(node);
@@ -93,6 +94,7 @@ public class SingleDockContainer extends StackPane implements DockContainer {
         }
     }
  
+    private DockNode lastDockNode;
     private void manageSubContainers(DockNode node, DockNode.DockPosition position, double percentage) {
         Node existNode = getChildren().get(0);
         
@@ -105,9 +107,17 @@ public class SingleDockContainer extends StackPane implements DockContainer {
             DockTabberContainer tabber = (DockTabberContainer) existNode;
             tabber.putDock(node, DockNode.DockPosition.CENTER, percentage);
         } else if (existNode instanceof DockSplitterContainer) {
-            position = DockNode.DockPosition.BOTTOM;
-            DockSplitterContainer splitter = (DockSplitterContainer) existNode;
-            node.dock((DockStation)this, position);
+        	if(position == DockNode.DockPosition.AUTO && lastDockNode != null){
+        		DockContainer parentContainer = lastDockNode.getParentContainer();
+        		if(parentContainer != null && parentContainer instanceof DockTabberContainer){
+        			DockTabberContainer tabber = (DockTabberContainer) parentContainer;
+                    tabber.putDock(node, DockNode.DockPosition.CENTER, percentage);
+        		}
+        	}else{
+	            position = DockNode.DockPosition.BOTTOM;
+	            DockSplitterContainer splitter = (DockSplitterContainer) existNode;
+	            node.dock((DockStation)this, position);
+        	}
         } else {
             getChildren().remove(existNode);
             DockTabberContainer tabber = DockCommons.createTabber(existNode, node, position);
@@ -115,6 +125,7 @@ public class SingleDockContainer extends StackPane implements DockContainer {
             getChildren().add(tabber);
             tabber.setParentContainer(this);
         }
+        lastDockNode = node;
     }
     
     @Override

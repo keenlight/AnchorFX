@@ -37,7 +37,7 @@ import javafx.scene.control.Tab;
 public class DockCommons {
 
 	public static boolean isABorderPosition(DockNode.DockPosition position) {
-		return position != DockNode.DockPosition.CENTER;
+		return position != DockNode.DockPosition.CENTER && position != DockNode.DockPosition.AUTO;
 	}
 
 	public static DockSplitterContainer createSplitter(Node existNode, Node newNode, DockNode.DockPosition position,
